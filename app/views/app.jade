@@ -1,0 +1,66 @@
+!!! 5
+html(lang="en")
+  head
+    != SocketStream
+    meta(charset="utf-8")
+    title Welcome
+  body
+    script(id="login_view", type="text/x-jquery-tmpl")
+      .error
+      form#login(onsubmit='return false')
+        h3 Login
+        label Email
+        input(name='email')
+        label Password
+        input(name='password')
+        
+    script(id="sidebar_view", type="text/x-jquery-tmpl")
+      h3 Themen
+      a.add_topic Thema hinzufügen
+          
+      ul#topic-list
+    
+    script(id="new_topic_row", type="text/x-jquery-tmpl")
+      li.new_topic
+        input(id="new-topic", name='title')
+    
+    script(id="topic_row", type="text/x-jquery-tmpl")
+      ${name} ${active}
+        
+    script(id="media_row", type="text/x-jquery-tmpl")
+      div(id="${id}", class='media')
+        h4 ${name} 
+          
+    script(id="topic_info_view", type="text/x-jquery-tmpl")
+      div(id ="topic-${id}", class="topic-info")
+        h1
+          ${name}  
+        ul.options
+          li#delete_topic Topic löschen
+        ul.add_media
+          li.add_notice Neue Notiz
+      ul.medias
+    
+    script(id="new_notice", type="text/x-jquery-tmpl")
+      form#new_notice(onsubmit='return false')
+        h3 Neue Notiz
+        label Titel
+        input(name='email')
+        label Notiz
+        input(name='password')     
+          
+    script(id="main_view", type="text/x-jquery-tmpl")
+      #sidebar
+      #main
+        #topic
+        #medias
+          
+    #sharenotes
+      #header
+        a(href="/")
+          img(src='/images/sharenotes.jpg', class="logo")
+      #session
+      #content
+      
+    
+  
