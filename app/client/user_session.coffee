@@ -35,7 +35,7 @@ exports.init = ->
           console.log session
           if session.user_id
             window.current_user = session.user_id
-            SS.client.topic.init()
+            window.AppRouter.navigate("", true);
             $("body").addClass("booted")
           else
             $("div.error").html(session.error_reason)

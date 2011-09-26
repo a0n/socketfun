@@ -15,7 +15,7 @@ exports.load = ->
         self = this
         self.medias = new MediaList(null, {topic_id: self.id})
       , 
-      # Remove this Todo from *localStorage* and delete its view.
+      # Remove this Topic from *localStorage* and delete its view.
       clear: ->
         this.destroy()
         $("#topic-" + this.id).remove()
@@ -47,13 +47,15 @@ exports.load = ->
 
       #... is a list tag.
       tagName:  "li",
-
       # Cache the template function for a single item.
-      template: $( "#topic_row" ),
+      show_template: $( "#topic_row" ),
+      edit_template: $( "#topic_edit_row"),
 
       # The DOM events specific to an item.
       events: {
         "click":  "open"
+        "dblclick": "edit"
+        "keypress input[name='edit_topic']":  "editOnEnter"
       },
 
       # The TodoView listens for changes to its model, re-rendering. Since there's
@@ -65,11 +67,21 @@ exports.load = ->
         this.model.view = this
       ,
       open: ->
-        topic_view = new TopicInfoView({model: this.model})
-        $("#main").html(topic_view.render().el)
-        this.activate()
-        AppRouter.navigate("topics/" + this.model.id);
+        if !$(this.el).hasClass("active")
+          topic_view = new TopicInfoView({model: this.model})
+          $("#topic").html(topic_view.render().el)
+          this.activate()
+          AppRouter.navigate("topics/" + this.model.id);
       ,
+      edit: ->
+        $(this.el).html(this.edit_template.tmpl(this.model.toJSON()))
+      editOnEnter: (e) ->
+        if e.keyCode != 13
+          return
+        self = this
+        value = $(e.target).val()
+        self.model.set({name: value},{silent: true})
+        self.model.save()
       activate: ->
         $(".active").removeClass("active")
         $(this.el).addClass("active")
@@ -83,7 +95,7 @@ exports.load = ->
           else if position.pivot == "AFTER"
             console.log("ASFTER")
             $($("#topic-list #"+position.pivot_topic_id)).after(this.el)
-        $(this.el).html(this.template.tmpl(this.model.toJSON()))
+        $(this.el).html(this.show_template.tmpl(this.model.toJSON()))
         $(this.el).attr("id", this.model.id)
         return this
     })
@@ -91,6 +103,8 @@ exports.load = ->
     window.TopicInfoView = Backbone.View.extend({
       #... is a list tag.
       tagName:  "div",
+      className: "topic-info",
+      
       # Cache the template function for a single item.
       template: $( "#topic_info_view" ),
 
@@ -109,6 +123,8 @@ exports.load = ->
         this.model.medias.bind('add',     this.addOne)
         this.model.medias.bind('reset',   this.addAll)
         this.model.medias.bind('all',     this.render)
+        this.model.bind('change', this.render)
+        $("#medias").html("")
         this.model.medias.fetch()
       ,
       addNotice: (e) ->
@@ -152,7 +168,6 @@ exports.load = ->
         this.user_id = this.options.user_id
         this.active_topic_id = this.options.active_topic_id
         self = this
-      
         
         Topics.bind('add',     this.addOne)
         Topics.bind('reset',   this.addAll)
@@ -162,9 +177,10 @@ exports.load = ->
             topic = Topics.get(self.active_topic_id)
             if topic
               topic_view = new TopicInfoView({model: topic})
-              $("#main").html(topic_view.render().el)
+              $("#topic").html(topic_view.render().el)
             $("#topic-list").sortable({
-              revert: true
+              containment: 'parent',
+              items: 'li',
               update: (e,ui) ->
                 console.log $(ui.item).next().attr("id")
                 if $(ui.item).attr("id")
@@ -199,12 +215,13 @@ exports.load = ->
         if e.keyCode != 13
           return
         self = this
+        console.log "asjdjkas"
         console.log "danger"
         console.log this.newAttributes()
         x = Topics.create(this.newAttributes(), {
-          success: ->
-            self.active_topic_id = x.id
-            console.log(x.view.open())
+          success: (response) ->
+            console.log "kill"
+            console.log response
         })
         $(e.target).parent().remove()
       ,
@@ -249,7 +266,9 @@ exports.init = (options) ->
   SS.events.on 'newTopic', (topic) ->
     existing_topic = Topics.get(topic.id)
     if existing_topic
+      console.log "topic already exists!"
     else
+      console.log "adding topic!"
       Topics.add(topic)
       
   SS.events.on 'updateTopic', (params) ->

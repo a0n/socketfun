@@ -26,20 +26,21 @@ html(lang="en")
     
     script(id="topic_row", type="text/x-jquery-tmpl")
       ${name} ${active}
+      
+    script(id="topic_edit_row", type="text/x-jquery-tmpl")
+      input(value="${name}", id="${id}", name="edit_topic")
         
     script(id="media_row", type="text/x-jquery-tmpl")
-      div(id="${id}", class='media')
-        h4 ${name} 
+      h4 ${title}
+      p ${notice}
           
     script(id="topic_info_view", type="text/x-jquery-tmpl")
-      div(id ="topic-${id}", class="topic-info")
-        h1
-          ${name}  
-        ul.options
-          li#delete_topic Topic löschen
-        ul.add_media
-          li.add_notice Neue Notiz
-      ul.medias
+      h1
+        ${name}  
+      ul.options
+        li#delete_topic Topic löschen
+      ul.add_media
+        li.add_notice Neue Notiz
     
     script(id="new_notice", type="text/x-jquery-tmpl")
       form#new_notice(onsubmit='return false')
@@ -59,6 +60,7 @@ html(lang="en")
       #header
         a(href="/")
           img(src='/images/sharenotes.jpg', class="logo")
+        a(href="/#logout", class="logout") Abmelden
       #session
       #content
       

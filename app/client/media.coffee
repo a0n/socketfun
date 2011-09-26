@@ -38,6 +38,7 @@ exports.load =  ->
     window.MediaRowView = Backbone.View.extend({
       #... is a list tag.
       tagName:  "li",
+      className: "media_entry",
 
       # Cache the template function for a single item.
       template: $( "#media_row" ),
@@ -61,3 +62,34 @@ exports.load =  ->
         return this
     })
   )
+  
+  SS.events.on 'newMedia', (media) ->
+    topic = Topics.get(media.topic_id)
+    if topic
+      existing_media = topic.medias.get(media.id)
+      if existing_media
+        console.log "media already exists!"
+      else
+        topic.medias.add(media)
+    else
+      console.log "topic for media does not exist"
+      
+  
+  SS.events.on 'updateMedia', (params) ->
+    topic = Topics.get(media.topic_id)
+    delete params["id"]
+    if topic
+      existing_media = topic.medias.get(media.id)
+      if existing_media
+        console.log "media updating"
+        existing_media.set(params)
+      else
+        console.log "media not found"
+    else
+      console.log "topic for media does not exist"
+
+  SS.events.on 'deleteTopic', (topic_id) ->
+    existing_topic = Topics.get(topic_id)
+    if existing_topic
+      existing_topic.clear()
+  

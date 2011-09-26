@@ -31,6 +31,23 @@ insert_topic_in_user_list = (topic_id, user_id, position, options, cb) ->
     else
       cb true
   )
+  
+get_user_topics = (user_id, cb) ->
+  R.lrange("user_id:"+ user_id + ".topics", -100, 1000, (err, topic_ids) ->
+    topics = []
+    multi = R.multi()
+    for i in [0..topic_ids.length - 1]
+      if topic_ids[i]
+        multi.hgetall("topic_id:"+topic_ids[i]+".attributes")
+
+    multi.exec( (err, replies) ->
+      console.log replies.length
+      if err || replies.length == 0
+        cb null
+      else
+        cb replies
+    )
+  )
 
 
 exports.actions =
@@ -46,6 +63,8 @@ exports.actions =
     attributes = {name: params.name, user_id: current_user_id, id: uuid}
     
     
+    @session.channel.subscribe('topic_id:'+uuid)
+    
     position = generate_topic_list_position(params["next_topic_id"], params["prev_topic_id"])
     insert_topic_in_user_list(uuid, current_user_id, position, {move: false}, (success)->
       if success == false
@@ -57,8 +76,7 @@ exports.actions =
           else
             if position
               attributes["position"] = position
-            SS.publish.broadcast 'newTopic', attributes
-            
+            SS.publish.channel("user_id:"+attributes["user_id"], 'newTopic', attributes)
             cb attributes
     )
           # Broadcast the message to everyone
@@ -91,7 +109,7 @@ exports.actions =
           params["id"] = topic_id
           if position
             params["position"] = position
-          SS.publish.broadcast 'updateTopic', params
+          SS.publish.channel("topic_id:"+topic_id, 'updateTopic', params)
           cb params
         )
       else
@@ -114,7 +132,7 @@ exports.actions =
             if err
               cb false
             else
-              SS.publish.broadcast 'deleteTopic', topic_id
+              SS.publish.channel("topic_id:"+topic_id, 'deleteTopic', topic_id)
               cb true
           )
         )
@@ -125,21 +143,5 @@ exports.actions =
   all: (options, cb) ->
     console.log "path!!"
     console.log "user_id:"+ @session.user_id + ".topics"
-    R.lrange("user_id:"+ @session.user_id + ".topics", -100, 1000, (err, topic_ids) ->
-      topics = []
-      multi = R.multi()
-      console.log "asdasdasdasdasd"
-      console.log topic_ids
-      for i in [0..topic_ids.length]
-        if topic_ids[i]
-          multi.hgetall("topic_id:"+topic_ids[i]+".attributes")
-
-      multi.exec( (err, replies) ->
-        console.log replies.length
-        if replies.length > 0
-          console.log replies
-          cb replies
-        else
-          cb null
-      )
-    )
+    
+    get_user_topics(@session.user_id, cb)
