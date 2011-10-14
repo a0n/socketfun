@@ -26,5 +26,8 @@ exports.actions =
    get_channel_list: (cb) ->
      cb @session.channel.list()   
 
+   echo: (params, cb) ->
+     cb params
+
    logout: (cb) ->
      @session.user.logout(cb)
